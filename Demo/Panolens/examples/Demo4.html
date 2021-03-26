@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no"
+    />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #000;
+      }
+
+      a:link,
+      a:visited {
+        color: #ffffff;
+      }
+
+     .credit{
+	    position: fixed;
+	    bottom: "3px",
+	    right: "10px",
+	    width: "80px",
+	    height: "80px",
+        padding: 20px 0;
+        color: #fff;
+      }
+	  
+	  /*.credit{
+	    position: absolute;
+	    text-align: left;
+	    width: 100%;
+	    padding: 20px 0;
+	    color: #fff;
+	  }
+	  */
+	  
+      #typed {
+		position: fixed;
+		//bottom: 30px;
+		//right: 0px;
+		//width: 0px;
+		height: 100px;
+		text-align: center;
+		width: 85%;
+		//padding: -10px 0;
+        color: #ffffff;
+        text-shadow: 10px 10px 10px #000;
+        font-size: 14pt;
+      }
+
+      #dialog {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        box-sizing: border-box;
+        pointer-events: none;
+      }
+
+      #progress {
+        width: 0;
+        height: 1px;
+        position: fixed;
+        top: 0;
+        background: #fff;
+        -webkit-transition: opacity 0.5s ease;
+        transition: opacity 0.5s ease;
+      }
+
+      #progress.finish {
+        opacity: 0;
+      }
+	  
+	  #main-container {
+	    width: 100%;
+	    height: 80%;
+	    align-self: center;
+	    background-color: #000;
+	  }
+	  
+	  #container {
+	    width: 100%;
+	    height: 100%;
+	  }
+	  
+	  #desc-container {
+	    max-width: 10000px;
+	    max-height: 10000px;
+	    min-width: 500px;
+	    min-height: 360px;
+	    background: #fff;
+	    color: #000;
+	    border-radius: 3px;
+	    overflow: auto;
+	    -webkit-overflow-scrolling: touch;
+	  }
+	  
+	  #desc-container > iframe {
+	    border: none;
+	    width:100%;
+	  }
+	  
+	  #iconforweb {
+	    background-image: url("myasset/textures/weltweites-netz.png");
+	    background-size: 100%;
+	    //font-size: 12px;
+	    border-style: none;
+	    width: 15px;
+	    height: 15px;
+		//top: 1rem;
+	  }
+	  
+	  #iconforvideo {
+	    background-image: url("myasset/textures/youtube.png");
+	    background-size: 100%;
+	    //font-size: 30px;
+	    border-style: none;
+	    width: 15px;
+	    height: 15px;
+		//top: 4rem;
+	  }
+	  
+	  #iconformap {
+	    background-image: url("myasset/textures/google-maps.png");
+	    background-size: 100%;
+	    //font-size: 15px;
+	    border-style: none;
+	    width: 15px;
+	    height: 15px;
+	  }
+
+    </style>
+  </head>
+
+  <body>
+	<div class="credit">
+		
+	<img
+	  src="myasset/textures/music.png"
+	  width="15px"
+	  height="15px"
+	  background-size="100%"
+	  border-style="none"
+	  id="btnClick"
+	/>
+	<audio
+	  src="myasset/textures/Feldlabor.mp3"
+	  id="audioClick"
+	  controls="controls"
+	  loop="false"
+	  hidden="true"
+	></audio>
+	
+	<a href="https://www.ihwb.tu-darmstadt.de/forschung_ihwb/feldlabor_ihwb/index.de.jsp" target="_blank" 
+	    ><input id="iconforweb" type="button"/></a>
+	<a href="https://www.youtube.com/channel/UCVlhydFpkPhSHSL0Z5GlumQ/videos" target="_blank"
+	    ><input id="iconforvideo" type="button"/></a>
+	<a href="https://www.google.de/maps/place/Gro%C3%9F-Bieberau/@49.7889199,8.8246804,13z/data=!4m5!3m4!1s0x47bd66dd632473b7:0x422435029b09ab0!8m2!3d49.8004763!4d8.8237674" target="_blank"
+	    ><input id="iconformap" type="button"/></a>
+	</div>
+
+
+    <script src="../../js/three/three.min.js"></script>
+    <script src="../../js/panolens/panolens.min.js"></script>
+    <script src="../js/typed.min.js"></script>
+
+    <div id="progress" style="width: 100%" class="finish"></div>
+
+    <div id="dialog">
+      <div id="typed">Herzlichen Willkommen zum Feldlabor</div>
+    </div>
+	
+	<div id="desc-container" style="display:none">
+	  <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d41225.30326520935!2d8.7918648!3d49.7751296!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd66dd632473b7%3A0x422435029b09ab0!2sGro%C3%9F-Bieberau!5e0!3m2!1sde!2sde!4v1616155695602!5m2!1sde!2sde" width="800" height="500" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+	</div>
+
+    <script>
+      var scene, camara, panorama, viewer, radius, font;
+      var panoramaLandkarte,stationA1,stationD,stationE,stationF1,stationF2,stationG,stationJ1,
+        stationJ2,stationM,stationN,stationO,stationP,stationQ,stationQu,stationW,stationZ,
+		F_Bruecke,M_Ufer1,N_Ufer,O_Ufer,Wetterstation,Z_Ufer1,Z_Ufer2,QP;
+      var skyA1,
+        skyD,
+        skyE,
+        skyF,
+        skyG,
+        skyJ,
+        skyM,
+        skyNO,
+        skyQP,
+        skyQu,
+        skyW,
+        skyZ;
+		
+
+      panoramaLandkarte = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/LandkartePano.jpg"
+      );
+      stationA1 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/A1.jpg"
+      );
+      stationD = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/D.jpg"
+      );
+      stationE = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/E.jpg"
+      );
+      stationF1 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/F1.jpg"
+      );
+      stationF2 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/F2.jpg"
+      );
+      stationG = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/G.jpg"
+      );
+      stationZ = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/Z.jpg"
+      );
+      stationJ1 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/J1.jpg"
+      );
+      stationJ2 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/J2.jpg"
+      );
+      stationM = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/M.jpg"
+      );
+      stationN = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/N.jpg"
+      );
+      stationO = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/O.jpg"
+      );
+      stationP = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/P.jpg"
+      );
+      stationQ = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/Q.jpg"
+      );
+      stationQu = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/Quelle.jpg"
+      );
+      stationW = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/W.jpg"
+      );
+
+      skyA1 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/A1Draufsicht.jpg"
+      );
+      skyD = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/DDraufsicht.jpg"
+      );
+      skyE = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/EDraufsicht.jpg"
+      );
+      skyF = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/FDraufsicht.jpg"
+      );
+      skyG = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/GDraufsicht.jpg"
+      );
+      skyZ = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/ZDraufsicht.jpg"
+      );
+      skyJ = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/JDraufsicht.jpg"
+      );
+      skyM = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/MDraufsicht.jpg"
+      );
+      skyNO = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/NODraufsicht.jpg"
+      );
+      skyQP = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/QPDraufsicht.jpg"
+      );
+      skyQu = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/QuelleDraufsicht.jpg"
+      );
+      skyW = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Aufsicht/WDraufsicht.jpg"
+      );
+	  
+	  QP = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/QP.jpg"
+      );
+	  
+	  F_Bruecke = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/F_Bruecke.jpg"
+      );
+	  
+	  M_Ufer1 = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/M_Ufer1.jpg"
+      );
+	  
+	  N_Ufer = new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/N_Ufer.jpg"
+      );
+	  
+	  O_Ufer= new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/O_Ufer.jpg"
+      );
+	  
+	  Wetterstation=new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/Wetterstation.jpg"
+      );
+	  
+	  Z_Ufer1= new PANOLENS.ImagePanorama(
+        "myasset/textures/equirectangular/Station/Z_Ufer1.jpg"
+      );
+	  
+	  Z_Ufer2= new PANOLENS.ImagePanorama(
+	    "myasset/textures/equirectangular/Station/Z_Ufer2.jpg"
+	  );
+	  
+	  //initial Position of Panorama
+      var lookAtPositions = [
+        new THREE.Vector3(8, -1, 0),
+        new THREE.Vector3(1278.27, 732.65, 60000),
+      ];
+      panoramaLandkarte.addEventListener("enter-fade-start", function () {
+        viewer.tweenControlCenter(lookAtPositions[0], 0);
+      });
+
+      var panorama, typed;
+
+      var meterInfospot,
+        valveInfospot,
+        seatInfospot,
+        topboxInfospot,
+        endingInfospot;
+
+      var progressElement = document.querySelector("#progress");
+
+      var tweeningDelay = 300,
+        typeStartDelay = 1000,
+        typeSpeed = 50;
+
+      var paragraphs = {
+        welcome: [
+          "Eine Panaromatour zu Einzuggebiet",
+          "Jetzt geht's los",
+        ],
+        meter: [
+          "Untersuchungsgebiet Gersprenz-Einzugsgebiet",
+		  "Größe: ca. 500 km²",
+		  "Geländehöhen ca. 600 bis 100 m ü. NHN",
+		  "Die Gersprenz ist ein 51,3 km,",
+		  "mit dem Hauptquellast Mergbach 62,1 km langer,",
+		  "im Odenwald entstehender,",
+		  "südwestlicher und orographisch linker Nebenfluss des Mains",
+		  "Sie ist ein Gewässer II. Ordnung und nicht schiffbar.",
+        ],
+		
+        valve: [
+	      "Teileinzugsgebiet Fischbach",
+        ],
+		
+        seat: [
+		  "Teileinzugsgebiet Fischbach",
+		  "Geländehöhen ca. 600 bis 160 m ü. NHN",
+		  "Fließgewässerlänge: ca. 10 km",
+		  "linker und westlicher Zufluss der Gersprenz im Landkreis Darmstadt-Dieburg in Hessen",
+
+        ],
+        box: [
+		  "Im Jahr 2016 wurde das Gersprenz-Einzugsgebiet als Studiengebiet und hydrologisches Feldlabor ausgewählt",
+          "Es ist hydrologische Untersuchungsgebiete mit intensiven Datenerfassungs- und Forschungsaktivitäten",
+        ],
+      };
+
+      // Patch for typed.js of cutting back-to-back words
+      for (var section in paragraphs) {
+        if (paragraphs.hasOwnProperty(section)) {
+          paragraphs[section].unshift("");
+          paragraphs[section].push("");
+        }
+      }
+
+      function delayExecute(func, delay) {
+        setTimeout(func, delay);
+      }
+
+      function onLoad() {
+        type(paragraphs.welcome, onWelcomeComplete, 2000);
+      }
+
+      function onEnter(event) {
+        progressElement.style.width = 0;
+        progressElement.classList.remove("finish");
+      }
+
+      function onProgress(event) {
+        var progress = (event.progress.loaded / event.progress.total) * 100;
+        progressElement.style.width = progress + "%";
+        if (progress === 100) {
+          progressElement.classList.add("finish");
+        }
+      }
+
+      function onWelcomeComplete() {
+        delayExecute(meterInfospot.focus.bind(meterInfospot), tweeningDelay);
+        type(paragraphs.meter, onMeterTourComplete);
+      }
+
+      function onMeterTourComplete() {
+        delayExecute(valveInfospot.focus.bind(valveInfospot), tweeningDelay);
+        type(paragraphs.valve, onValveTourComplete);
+      }
+
+      function onValveTourComplete() {
+        delayExecute(seatInfospot.focus.bind(seatInfospot), tweeningDelay);
+        type(paragraphs.seat, onSeatTourComplete);
+      }
+
+      function onSeatTourComplete() {
+        delayExecute(topboxInfospot.focus.bind(topboxInfospot), tweeningDelay);
+        type(paragraphs.box, onTopboxTourComplete);
+      }
+
+      function onTopboxTourComplete() {
+        delayExecute(endingInfospot.focus.bind(endingInfospot), tweeningDelay);
+        type(paragraphs.ending, function () {
+          viewer.OrbitControls.enabled = true;
+        });
+      }
+
+      function type(stringArray, onComplete, startDelay) {
+        onComplete = onComplete || function () {};
+        startDelay = startDelay >= 0 ? startDelay : typeStartDelay;
+
+        typed = new Typed("#typed", {
+          strings: stringArray,
+          typeSpeed: typeSpeed,
+          showCursor: false,
+          startDelay: startDelay,
+          onComplete: onComplete,
+        });
+      }
+
+      meterInfospot = new PANOLENS.Infospot(10,'myasset/textures/Gersprenz.png');
+      valveInfospot = new PANOLENS.Infospot(400,'myasset/textures/Fischbach.png');
+      seatInfospot = new PANOLENS.Infospot(350,'myasset/textures/Fischbach2.png');
+      topboxInfospot = new PANOLENS.Infospot(9500,'myasset/textures/Poster.jpg', false);
+      endingInfospot = new PANOLENS.Infospot(10e-7); // Make it not visible
+
+      meterInfospot.position.set(3000.04, 0, -1600);
+      valveInfospot.position.set(3000.04, -1700, -1700);
+      seatInfospot.position.set(3000, 0, 300);
+      topboxInfospot.position.set(0, -10000, 0);
+      endingInfospot.position.set(2000, 0, -500);
+
+     //meterInfospot.addHoverText("Gersprenz EZG", 8);
+      valveInfospot.addHoverText("Fischbach EZG", 8);
+      seatInfospot.addHoverText("Fischbach EZG", 8);
+      //topboxInfospot.addHoverText("Poster", 8);
+
+      // panorama
+      panorama = panoramaLandkarte;
+      panorama.addEventListener("progress", onProgress);
+      panorama.addEventListener("load", onLoad);
+      panorama.addEventListener("enter", onEnter);
+      panorama.add(
+        meterInfospot,
+        valveInfospot,
+        seatInfospot,
+        topboxInfospot,
+        endingInfospot
+      );
+
+      viewer = new PANOLENS.Viewer({
+        controlBar: true,
+        initialLookAt: new THREE.Vector3(0, 0, 5000),
+        controlButtons: ["fullscreen", "setting", "video", "compass"],
+        output: "console",
+      });
+
+      viewer.OrbitControls.enabled = true;
+
+      viewer.add(panorama);
+
+      //main scene
+      viewer.add(panoramaLandkarte);
+
+      //second class scene
+      viewer.add(stationA1);
+      viewer.add(stationD);
+      viewer.add(stationE);
+      viewer.add(stationF1);
+      viewer.add(stationF2);
+      viewer.add(stationG);
+      viewer.add(stationJ1);
+      viewer.add(stationJ2);
+      viewer.add(stationM);
+      viewer.add(stationN);
+      viewer.add(stationO);
+      viewer.add(stationP);
+      viewer.add(stationQ);
+      viewer.add(stationQu);
+      viewer.add(stationW);
+      viewer.add(stationZ);
+
+      viewer.add(skyA1);
+      viewer.add(skyD);
+      viewer.add(skyE);
+      viewer.add(skyF);
+      viewer.add(skyG);
+      viewer.add(skyJ);
+      viewer.add(skyM);
+      viewer.add(skyNO);
+      viewer.add(skyQP);
+      viewer.add(skyQu);
+      viewer.add(skyW);
+      viewer.add(skyZ);
+	  viewer.add(QP);
+	  viewer.add(F_Bruecke);
+	  viewer.add(M_Ufer1);
+	  viewer.add(N_Ufer);
+	  viewer.add(O_Ufer);
+	  viewer.add(Z_Ufer1);
+	  viewer.add(Z_Ufer2);
+	  viewer.add(Wetterstation);
+
+      //third class scene
+      //viewer.add(skyA1,skyD,skyE,skyF,skyG,skyJ,skyM,skyNO,skyQP,skyQu,skyW,skyZ);
+
+      panoramaLandkarte.link(
+        skyA1,
+        new THREE.Vector3(2700, -1000, 600),
+        170,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/A1.png"
+      );
+
+      panoramaLandkarte.link(
+        skyD,
+        new THREE.Vector3(2700, -1000, 400),
+        180,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/D.png"
+      );
+
+      panoramaLandkarte.link(
+        skyE,
+        new THREE.Vector3(3500, -700, 150),
+        250,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/E.png"
+      );
+
+      panoramaLandkarte.link(
+        skyF,
+        new THREE.Vector3(3500, -150, -240),
+        250,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/F.png"
+      );
+
+      panoramaLandkarte.link(
+        skyG,
+        new THREE.Vector3(3000, 300, 300),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/G.png"
+      );
+
+      panoramaLandkarte.link(
+        skyJ,
+        new THREE.Vector3(2775, -300, 750),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/J.png"
+      );
+
+      panoramaLandkarte.link(
+        skyM,
+        new THREE.Vector3(3000, 740, -350),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/M.png"
+      );
+
+      panoramaLandkarte.link(
+        skyNO,
+        new THREE.Vector3(3000, 400, -200),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/NO.png"
+      );
+
+      panoramaLandkarte.link(
+        skyQP,
+        new THREE.Vector3(2775, 100, 600),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/QP.png"
+      );
+
+      panoramaLandkarte.link(
+        skyQu,
+        new THREE.Vector3(2000, -950, 700),
+        150,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/Qu.png"
+      );
+
+      panoramaLandkarte.link(
+        skyW,
+        new THREE.Vector3(2000, -950, -1400),
+        150,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/W.png"
+      );
+
+      panoramaLandkarte.link(
+        skyZ,
+        new THREE.Vector3(2000, 700, -1400),
+        150,
+        "myasset/textures/equirectangular/Aufsicht/Drohne/log/Z.png"
+      );
+
+      skyA1.link(
+        stationA1,
+        new THREE.Vector3(100, -700, 400),
+        90,
+        "myasset/textures/equirectangular/Aufsicht/Station/A1station.png"
+      );
+      skyA1.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/A1exit.png"
+      );
+      stationA1.link(
+        skyA1,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/A1drohne.png"
+      );
+      stationA1.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/A1exit.png"
+      );
+
+      skyD.link(
+        stationD,
+        new THREE.Vector3(-50, -400, -80),
+        60,
+        "myasset/textures/equirectangular/Aufsicht/Station/Dstation.png"
+      );
+      skyD.link(
+        panoramaLandkarte,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Dexit.png"
+      );
+      stationD.link(
+        skyD,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Ddrohne.png"
+      );
+      stationD.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Dexit.png"
+      );
+
+      skyE.link(
+        stationE,
+        new THREE.Vector3(-600, -1000, 1000),
+        120,
+        "myasset/textures/equirectangular/Aufsicht/Station/Estation.png"
+      );
+      skyE.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Eexit.png"
+      );
+      stationE.link(
+        skyE,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Edrohne.png"
+      );
+      stationE.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Eexit.png"
+      );
+	  
+	  
+	  skyE.link(Wetterstation,new THREE.Vector3(-20, 0, -200),30,"myasset/textures/equirectangular/Station/Linking/Wetterstation.png");
+	  Wetterstation.link(stationE,new THREE.Vector3(100, -80, -320),50,"myasset/textures/equirectangular/Station/Linking/E.png");
+	  Wetterstation.link(panoramaLandkarte,new THREE.Vector3(100, -1000, 100),100,"myasset/textures/equirectangular/Station/Exit/Wetterstation.png");
+	  
+	  
+
+      skyF.link(
+        stationF1,
+        new THREE.Vector3(300, -1000, -500),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/F1station.png"
+      );
+      skyF.link(
+        stationF2,
+        new THREE.Vector3(-300, -1600, 1000),
+        170,
+        "myasset/textures/equirectangular/Aufsicht/Station/F2station.png"
+      );
+      skyF.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Fexit.png"
+      );
+      stationF1.link(
+        skyF,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/F1drohne.png"
+      );
+      stationF1.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/F1exit.png"
+      );
+      stationF2.link(
+        skyF,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/F2drohne.png"
+      );
+      stationF2.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/F2exit.png"
+      );
+	  
+	  stationF1.link(stationF2,new THREE.Vector3(300, 110, -10),90,"myasset/textures/equirectangular/Station/Linking/F1F2.png");
+	  stationF2.link(stationF1,new THREE.Vector3(-100, 40, -400),90,"myasset/textures/equirectangular/Station/Linking/F2F1.png");
+	  stationF1.link(F_Bruecke,new THREE.Vector3(400, 130, 1200),200,"myasset/textures/equirectangular/Station/Linking/F1FBruecke.png");
+	  stationF2.link(F_Bruecke,new THREE.Vector3(-900, 30, -400),100,"myasset/textures/equirectangular/Station/Linking/F2FBruecke.png");
+	  F_Bruecke.link(stationF1,new THREE.Vector3(-50, 10, -90),23,"myasset/textures/equirectangular/Station/Linking/F1.png");
+	  F_Bruecke.link(stationF2,new THREE.Vector3(1000, 100, -200),200,"myasset/textures/equirectangular/Station/Linking/F2.png");
+	  F_Bruecke.link(skyF,new THREE.Vector3(0, -1000, 0),100,"myasset/textures/equirectangular/Station/Drohne/F_Bruecke.png");
+	  F_Bruecke.link(panoramaLandkarte,new THREE.Vector3(100, -1000, 100),100,"myasset/textures/equirectangular/Station/Exit/F_Bruecke.png");
+	  
+
+      skyG.link(
+        stationG,
+        new THREE.Vector3(700, -1500, 0),
+        180,
+        "myasset/textures/equirectangular/Aufsicht/Station/Gstation.png"
+      );
+      skyG.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Gexit.png"
+      );
+      stationG.link(
+        skyG,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Gdrohne.png"
+      );
+      stationG.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Gexit.png"
+      );
+
+      skyJ.link(
+        stationJ1,
+        new THREE.Vector3(400, -1090, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/J1station.png"
+      );
+      skyJ.link(
+        stationJ2,
+        new THREE.Vector3(100, -2300, -800),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Station/J2station.png"
+      );
+      skyJ.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 00),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Jexit.png"
+      );
+      stationJ1.link(
+        skyJ,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/J1drohne.png"
+      );
+      stationJ2.link(
+        skyJ,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/J2drohne.png"
+      );
+      stationJ1.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/J1exit.png"
+      );
+      stationJ2.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/J2exit.png"
+      );
+	  
+	  stationJ1.link(stationJ2,new THREE.Vector3(0, 20, 120),30,"myasset/textures/equirectangular/Station/Linking/J1J2.png");
+	  stationJ2.link(stationJ1,new THREE.Vector3(100, 0, 200),50,"myasset/textures/equirectangular/Station/Linking/J2J1.png");
+	  
+      skyM.link(
+        stationM,
+        new THREE.Vector3(200, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/Mstation.png"
+      );
+      skyM.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Mexit.png"
+      );
+      stationM.link(
+        skyM,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Mdrohne.png"
+      );
+      stationM.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Mexit.png"
+      );
+	  
+	  
+	  stationM.link(M_Ufer1,new THREE.Vector3(-50, 40, -120),30,"myasset/textures/equirectangular/Station/Linking/MM_Ufer1.png");
+	  M_Ufer1.link(stationM,new THREE.Vector3(100, -40, 60),23,"myasset/textures/equirectangular/Station/Linking/M.png");
+	  M_Ufer1.link(skyM,new THREE.Vector3(0, -1000, 0),100,"myasset/textures/equirectangular/Station/Drohne/M_Ufer1.png");
+	  M_Ufer1.link(panoramaLandkarte,new THREE.Vector3(100, -1000, 100),100,"myasset/textures/equirectangular/Station/Exit/M_Ufer1.png");
+	  
+	 
+      skyNO.link(
+        stationN,
+        new THREE.Vector3(-1000, -2000, -200),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Station/Nstation.png"
+      );
+      skyNO.link(
+        stationO,
+        new THREE.Vector3(1500, -700, 600),
+        200,
+        "myasset/textures/equirectangular/Aufsicht/Station/Ostation.png"
+      );
+      skyNO.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/NOexit.png"
+      );
+      stationN.link(
+        skyNO,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Ndrohne.png"
+      );
+      stationN.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Nexit.png"
+      );
+	  
+	  stationN.link(N_Ufer,new THREE.Vector3(200, 10, 120),40,"myasset/textures/equirectangular/Station/Linking/N_Ufer.png");
+	  N_Ufer.link(stationN,new THREE.Vector3(-400, -300, -320),80,"myasset/textures/equirectangular/Station/Linking/N.png");
+	  
+	  
+	  
+	  
+      stationO.link(
+        skyNO,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Odrohne.png"
+      );
+      stationO.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Oexit.png"
+      );
+	  
+	  stationO.link(O_Ufer,new THREE.Vector3(250, 25, 120),50,"myasset/textures/equirectangular/Station/Linking/O_Ufer.png");
+	  O_Ufer.link(stationO,new THREE.Vector3(200, -100, 150),50,"myasset/textures/equirectangular/Station/Linking/O.png");
+	  
+      skyQP.link(
+        stationQ,
+        new THREE.Vector3(250, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/Qstation.png"
+      );
+      skyQP.link(
+        stationP,
+        new THREE.Vector3(40, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/Pstation.png"
+      );
+      skyQP.link(
+        panoramaLandkarte,
+        new THREE.Vector3(-200, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/QPexit.png"
+      );
+      stationQ.link(
+        skyQP,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Qdrohne.png"
+      );
+      stationP.link(
+        skyQP,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Pdrohne.png"
+      );
+      stationQ.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Qexit.png"
+      );
+      stationP.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Pexit.png"
+      );
+	  
+	  stationQ.link(QP,new THREE.Vector3(400, 0, -800),100,"myasset/textures/equirectangular/Station/Linking/QQP.png");
+	  stationQ.link(stationP,new THREE.Vector3(0, 10, -100),20,"myasset/textures/equirectangular/Station/Linking/Q_P.png");
+	  
+	  stationP.link(QP,new THREE.Vector3(-400, 0, 100),100,"myasset/textures/equirectangular/Station/Linking/PQP.png");
+	  stationP.link(stationQ,new THREE.Vector3(-200, 10, -200),80,"myasset/textures/equirectangular/Station/Linking/P_Q.png");
+	  
+	  QP.link(stationQ,new THREE.Vector3(-120, 0, 100),20,"myasset/textures/equirectangular/Station/Linking/Q.png");
+	  QP.link(stationP,new THREE.Vector3(-1000, 0, -200),150,"myasset/textures/equirectangular/Station/Linking/P.png");
+	  QP.link(skyQP,new THREE.Vector3(0, -1000, 0),100,"myasset/textures/equirectangular/Station/Drohne/QP.png");
+	  QP.link(panoramaLandkarte,new THREE.Vector3(100, -1000, 100),100,"myasset/textures/equirectangular/Station/Exit/QP.png");
+	
+
+      skyQu.link(
+        stationQu,
+        new THREE.Vector3(-1300, -1000, 0),
+        150,
+        "myasset/textures/equirectangular/Aufsicht/Station/Qustation.png"
+      );
+      skyQu.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Quexit.png"
+      );
+      stationQu.link(
+        skyQu,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Qudrohne.png"
+      );
+      stationQu.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Quexit.png"
+      );
+
+      skyW.link(
+        stationW,
+        new THREE.Vector3(150, -1000, -20),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/Wstation.png"
+      );
+      skyW.link(
+        panoramaLandkarte,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Wexit.png"
+      );
+      stationW.link(
+        skyW,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Wdrohne.png"
+      );
+      stationW.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Wexit.png"
+      );
+
+      skyZ.link(
+        stationZ,
+        new THREE.Vector3(100, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Station/Zstation.png"
+      );
+      skyZ.link(
+        panoramaLandkarte,
+        new THREE.Vector3(300, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Aufsicht/Exit/Zexit.png"
+      );
+      stationZ.link(
+        skyZ,
+        new THREE.Vector3(0, -1000, 0),
+        100,
+        "myasset/textures/equirectangular/Station/Drohne/Zdrohne.png"
+      );
+      stationZ.link(
+        panoramaLandkarte,
+        new THREE.Vector3(100, -1000, 100),
+        100,
+        "myasset/textures/equirectangular/Station/Exit/Zexit.png"
+      );
+	  
+	  stationZ.link(Z_Ufer1,new THREE.Vector3(-20, -30, 30),10,"myasset/textures/equirectangular/Station/Linking/Z_Ufer1.png");
+	  stationZ.link(Z_Ufer2,new THREE.Vector3(-400, 0, -200),80,"myasset/textures/equirectangular/Station/Linking/Z_Ufer2.png");
+	  
+	  Z_Ufer1.link(stationZ,new THREE.Vector3(120, 50, 0),20,"myasset/textures/equirectangular/Station/Linking/Z_Fluss.png");
+	  Z_Ufer1.link(Z_Ufer2,new THREE.Vector3(100, 10, -550),100,"myasset/textures/equirectangular/Station/Linking/Z_Ufer12.png");
+	  Z_Ufer1.link(skyZ,new THREE.Vector3(0, -1000, 0),100,"myasset/textures/equirectangular/Station/Drohne/Z_Ufer1.png");
+	  Z_Ufer1.link(panoramaLandkarte,new THREE.Vector3(100, -1000, 100),100,"myasset/textures/equirectangular/Station/Exit/Z_Ufer1.png");
+	  
+	  Z_Ufer2.link(Z_Ufer1,new THREE.Vector3(200, 30, 200),80,"myasset/textures/equirectangular/Station/Linking/Z_Ufer21.png");
+	  Z_Ufer2.link(skyZ,new THREE.Vector3(0, -1000, 0),100,"myasset/textures/equirectangular/Station/Drohne/Z_Ufer2.png");
+	  Z_Ufer2.link(panoramaLandkarte,new THREE.Vector3(100, -1000, 100),100,"myasset/textures/equirectangular/Station/Exit/Z_Ufer2.png");
+	  
+
+	  var infospot_GoogleMap;
+	  infospot_GoogleMap = new PANOLENS.Infospot( 15,'myasset/textures/equirectangular/map.png');
+	  infospot_GoogleMap.position.set( 90, -60, -10);
+	  infospot_GoogleMap.addHoverElement( document.getElementById( 'desc-container' ), 280 );
+	  panoramaLandkarte.add(infospot_GoogleMap);
+
+
+	  var infospot_A1_Temperatur;
+	  infospot_A1_Temperatur = new PANOLENS.Infospot( 50,'myasset/textures/equirectangular/Wasserstand/A1_T.png');
+	  infospot_A1_Temperatur.position.set( -120, 40, 60 );
+	  infospot_A1_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationA1.add(infospot_A1_Temperatur);
+	  var infospot_A1_Wasserstand;
+	  infospot_A1_Wasserstand = new PANOLENS.Infospot( 50,'myasset/textures/equirectangular/Wasserstand/A1_A.png');
+	  infospot_A1_Wasserstand.position.set( -120, 40, -60 );
+	  infospot_A1_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationA1.add(infospot_A1_Wasserstand);
+	  
+	  var infospot_D_Temperatur;
+	  infospot_D_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/D_T.png');
+	  infospot_D_Temperatur.position.set( -100, 20, 50 );
+	  infospot_D_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationD.add(infospot_D_Temperatur);
+	  var infospot_D_Wasserstand;
+	  infospot_D_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/D_A.png');
+	  infospot_D_Wasserstand.position.set( -100, 20, -50 );
+	  infospot_D_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationD.add(infospot_D_Wasserstand);
+	  
+	  var infospot_E_Temperatur;
+	  infospot_E_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/E_T.png');
+	  infospot_E_Temperatur.position.set( 100, 20, 50 );
+	  infospot_E_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationE.add(infospot_E_Temperatur);
+	  var infospot_E_Wasserstand;
+	  infospot_E_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/E_A.png');
+	  infospot_E_Wasserstand.position.set( 100, 20, -50 );
+	  infospot_E_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationE.add(infospot_E_Wasserstand);
+	  
+	  var infospot_E_Wetterstation;
+	  infospot_E_Wetterstation = new PANOLENS.Infospot( 90,'myasset/textures/equirectangular/Station/Log/Wetterstation.jpg');
+	  infospot_E_Wetterstation.position.set( 200, -200, -50 );
+	  infospot_E_Wetterstation.addHoverText("Wetterstation");
+	  infospot_E_Wetterstation.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  Wetterstation.add(infospot_E_Wetterstation);
+	  
+	  
+	  
+	  var infospot_F1_Temperatur;
+	  infospot_F1_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/F1_T.png');
+	  infospot_F1_Temperatur.position.set( 100, 20, 50 );
+	  infospot_F1_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationF1.add(infospot_F1_Temperatur);
+	  var infospot_F1_Wasserstand;
+	  infospot_F1_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/F1_A.png');
+	  infospot_F1_Wasserstand.position.set( 100, 20, -50 );
+	  infospot_F1_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationF1.add(infospot_F1_Wasserstand);
+	  
+	  var infospot_F2_Temperatur;
+	  infospot_F2_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/F2_T.png');
+	  infospot_F2_Temperatur.position.set( 100, 20, 50 );
+	  infospot_F2_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationF2.add(infospot_F2_Temperatur);
+	  var infospot_F1_Wasserstand;
+	  infospot_F2_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/F2_A.png');
+	  infospot_F2_Wasserstand.position.set( 100, 20, -50 );
+	  infospot_F2_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationF2.add(infospot_F2_Wasserstand);
+	  
+	  var infospot_G_Temperatur;
+	  infospot_G_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/G_T.png');
+	  infospot_G_Temperatur.position.set( 100, -20, 50 );
+	  infospot_G_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationG.add(infospot_G_Temperatur);
+	  var infospot_G_Wasserstand;
+	  infospot_G_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/G_A.png');
+	  infospot_G_Wasserstand.position.set( 100, -20, -50 );
+	  infospot_G_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationG.add(infospot_G_Wasserstand);
+	  
+	  var infospot_J1_Temperatur;
+	  infospot_J1_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/J1_T.png');
+	  infospot_J1_Temperatur.position.set( 100, 20, 50 );
+	  infospot_J1_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationJ1.add(infospot_J1_Temperatur);
+	  var infospot_J1_Wasserstand;
+	  infospot_J1_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/J1_A.png');
+	  infospot_J1_Wasserstand.position.set( 100, 20, -50 );
+	  infospot_J1_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationJ1.add(infospot_J1_Wasserstand);
+	  
+	  var infospot_J2_Temperatur;
+	  infospot_J2_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/J2_T.png');
+	  infospot_J2_Temperatur.position.set( 50, 20, -100 );
+	  infospot_J2_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationJ2.add(infospot_J2_Temperatur);
+	  var infospot_J2_Wasserstand;
+	  infospot_J2_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/J2_A.png');
+	  infospot_J2_Wasserstand.position.set( -50, 20, -100 );
+	  infospot_J2_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationJ2.add(infospot_J2_Wasserstand);
+	  
+	  var infospot_M_Temperatur;
+	  infospot_M_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/M_T.png');
+	  infospot_M_Temperatur.position.set( 100, 10, 50 );
+	  infospot_M_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationM.add(infospot_M_Temperatur);
+	  var infospot_M_Wasserstand;
+	  infospot_M_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/M_A.png');
+	  infospot_M_Wasserstand.position.set( 100, 10, -50 );
+	  infospot_M_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationM.add(infospot_M_Wasserstand);
+	  
+	  var infospot_M_Sensor;
+	  infospot_M_Sensor = new PANOLENS.Infospot( 100,'myasset/textures/equirectangular/Station/Log/Sensoren.jpg');
+	  infospot_M_Sensor.position.set( 200, -350, 50 );
+	  infospot_M_Sensor.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationM.add(infospot_M_Sensor);
+	  
+	  
+	  var infospot_O_Kiste;
+	  infospot_O_Kiste = new PANOLENS.Infospot( 20,'myasset/textures/equirectangular/Station/Log/Sensorkiste.jpg');
+	  infospot_O_Kiste.position.set( 50, 0, 0 );
+	  infospot_O_Kiste.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  O_Ufer.add(infospot_O_Kiste);
+	  
+	  
+	  var infospot_M_Schild;
+	  infospot_M_Schild = new PANOLENS.Infospot( 15,'myasset/textures/equirectangular/Station/Log/M.jpg');
+	  infospot_M_Schild.position.set( 50, 0, 0 );
+	  infospot_M_Schild.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  M_Ufer1.add(infospot_M_Schild);
+	  
+	  
+	  
+	  var infospot_N_Temperatur;
+	  infospot_N_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/N_T.png');
+	  infospot_N_Temperatur.position.set( -100, 0, 50 );
+	  infospot_N_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationN.add(infospot_N_Temperatur);
+	  var infospot_N_Wasserstand;
+	  infospot_N_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/N_A.png');
+	  infospot_N_Wasserstand.position.set( -100, 0, -50 );
+	  infospot_N_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationN.add(infospot_N_Wasserstand);
+	  
+	  var infospot_O_Temperatur;
+	  infospot_O_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/O_T.png');
+	  infospot_O_Temperatur.position.set( 0, 0, -100 );
+	  infospot_O_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationO.add(infospot_O_Temperatur);
+	  var infospot_O_Wasserstand;
+	  infospot_O_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/O_A.png');
+	  infospot_O_Wasserstand.position.set( 90, 0, -54 );
+	  infospot_O_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationO.add(infospot_O_Wasserstand);
+	  
+	  var infospot_P_Temperatur;
+	  infospot_P_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/P_T.png');
+	  infospot_P_Temperatur.position.set( 100, 0, 50 );
+	  infospot_P_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationP.add(infospot_P_Temperatur);
+	  var infospot_P_Wasserstand;
+	  infospot_P_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/P_A.png');
+	  infospot_P_Wasserstand.position.set( 100, 0, -50 );
+	  infospot_P_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationP.add(infospot_P_Wasserstand);
+	  
+	  var infospot_Q_Temperatur;
+	  infospot_Q_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/Q_T.png');
+	  infospot_Q_Temperatur.position.set( 100, -20, 50 );
+	  infospot_Q_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationQ.add(infospot_Q_Temperatur);
+	  var infospot_Q_Wasserstand;
+	  infospot_Q_Wasserstand = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/Q_A.png');
+	  infospot_Q_Wasserstand.position.set( 100, -20, -50 );
+	  infospot_Q_Wasserstand.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationQ.add(infospot_Q_Wasserstand);
+	  
+	  var infospot_Qu_Temperatur;
+	  infospot_Qu_Temperatur = new PANOLENS.Infospot( 40,'myasset/textures/equirectangular/Wasserstand/QuellevonFischbach.png');
+	  infospot_Qu_Temperatur.position.set( -100, 50, 50 );
+	  infospot_Qu_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationQu.add(infospot_Qu_Temperatur);
+	  
+	  var infospot_W_Temperatur;
+	  infospot_W_Temperatur = new PANOLENS.Infospot( 50,'myasset/textures/equirectangular/Wasserstand/W_T.png');
+	  infospot_W_Temperatur.position.set( 100, 0, 100 );
+	  infospot_W_Temperatur.addEventListener( "click", function(){
+	    this.focus();
+	  } );
+	  stationW.add(infospot_W_Temperatur);
+	  
+	  var checkclick = true;
+	  var btnClick = document.getElementById("btnClick");
+	  var audioClick = document.getElementById("audioClick");
+	  btnClick.onclick = function playmusic() {
+	    if (checkclick) {
+	      //alert("Open");
+	      audioClick.play();
+	      checkclick = false;
+	    } else {
+	      //alert("Close");
+	      audioClick.pause();
+	      checkclick = true;
+	    }
+	  };
+
+
+	  
+    </script>
+  </body>
+</html>
